@@ -21,6 +21,7 @@ const CartSummary = () => {
 
   const getPriceTypeLabel = (priceType: string) => {
     switch (priceType) {
+      case 'gramo': return 'gramo';
       case 'media_onza': return 'media onza';
       case 'onza': return 'onza';
       case 'unidad': return 'unidad';
@@ -40,19 +41,11 @@ const CartSummary = () => {
       >
         <Calculator className="w-4 h-4 mr-2" />
         <span className="hidden sm:inline">Calculadora</span>
-        {itemCount > 0 && (
-          <Badge
-            variant="secondary"
-            className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary text-primary-foreground"
-          >
-            {itemCount}
-          </Badge>
-        )}
       </Button>
 
       {/* Cart Dropdown */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 max-w-[90vw] glass-card-animated border border-glass-border/30 rounded-2xl shadow-glass animate-scale-in z-50">
+        <div className="absolute top-full right-0 mt-2 w-80 max-w-[90vw] glass-card-animated mobile-dropdown industrial-dropdown border border-glass-border/30 rounded-2xl shadow-glass z-50">
           <Card className="border-0 bg-transparent">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">

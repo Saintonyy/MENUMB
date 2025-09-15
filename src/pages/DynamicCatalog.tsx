@@ -23,8 +23,6 @@ interface Product {
 }
 
 interface Filters {
-  priceRange: [number, number];
-  thcRange: [number, number];
   sortBy: string;
   category: string;
 }
@@ -40,11 +38,19 @@ const DynamicCatalog = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
-    priceRange: [0, 5000],
-    thcRange: [0, 35],
     sortBy: 'name',
     category: selectedCategory
   });
+
+  // Sync selected category with URL params
+  useEffect(() => {
+    const urlCategory = searchParams.get('category');
+    if (urlCategory && urlCategory !== selectedCategory) {
+      setSelectedCategory(urlCategory);
+    } else if (!urlCategory && selectedCategory !== 'all') {
+      setSelectedCategory('all');
+    }
+  }, [searchParams]);
 
   // Fetch categories
   useEffect(() => {
@@ -107,19 +113,19 @@ const DynamicCatalog = () => {
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Apply price filter
-    filtered = filtered.filter(product => {
-      const price = product.precio_unidad || product.precio_gramo || 0;
-      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-    });
-
     // Apply sorting
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
-        case 'price-low':
-          return (a.precio_unidad || a.precio_gramo || 0) - (b.precio_unidad || b.precio_gramo || 0);
-        case 'price-high':
-          return (b.precio_unidad || b.precio_gramo || 0) - (a.precio_unidad || a.precio_gramo || 0);
+        case 'price-low': {
+          const priceA = a.precio_unidad || a.precio_onza || a.precio_gramo || 0;
+          const priceB = b.precio_unidad || b.precio_onza || b.precio_gramo || 0;
+          return priceA - priceB;
+        }
+        case 'price-high': {
+          const priceA2 = a.precio_unidad || a.precio_onza || a.precio_gramo || 0;
+          const priceB2 = b.precio_unidad || b.precio_onza || b.precio_gramo || 0;
+          return priceB2 - priceA2;
+        }
         case 'name':
         default:
           return a.nombre.localeCompare(b.nombre);
@@ -140,6 +146,10 @@ const DynamicCatalog = () => {
     setSearchParams(newSearchParams);
   };
 
+  const handleFiltersChange = (newFilters: Filters) => {
+    setFilters(newFilters);
+  };
+
   const getCategoryDisplayName = (cat: string) => {
     if (cat === 'all') return 'Todos';
     if (cat === 'sugeridos') return 'Sugeridos';
@@ -158,7 +168,7 @@ const DynamicCatalog = () => {
               className="h-16 w-auto object-contain opacity-80"
             />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-center glass-shine-effect">
             Catálogo
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-center">
@@ -168,7 +178,7 @@ const DynamicCatalog = () => {
         </div>
 
         {/* Filters */}
-        <div className="glass-card rounded-glass p-6 mb-16 lg:mb-8 animate-fade-in-up relative" style={{ animationDelay: '0.1s' }}>
+        <div className="liquid-card p-6 mb-16 lg:mb-8 animate-fade-in-up relative liquid-animation" style={{ animationDelay: '0.1s' }}>
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Search */}
             <div className="flex-1">
@@ -178,7 +188,7 @@ const DynamicCatalog = () => {
                   placeholder="Buscar productos, categorías, descripciones..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 glass-card border-glass-border/30 bg-glass/20"
+                  className="pl-10 liquid-card border-glass-border/30 bg-glass/20 glass-shine-effect"
                 />
               </div>
             </div>
@@ -186,7 +196,7 @@ const DynamicCatalog = () => {
             {/* View Mode and Filters */}
             <div className="flex items-center space-x-4">
               <ProductFilters
-                onFiltersChange={setFilters}
+                onFiltersChange={handleFiltersChange}
                 categories={categories}
                 selectedCategory={selectedCategory}
               />
@@ -196,7 +206,7 @@ const DynamicCatalog = () => {
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className={viewMode === 'grid' ? 'glass-button' : 'glass-card border-glass-border/30'}
+                  className={viewMode === 'grid' ? 'glass-button-interactive' : 'liquid-card border-glass-border/30 liquid-ripple'}
                 >
                   <Grid3X3 className="w-4 h-4" />
                 </Button>
@@ -204,7 +214,7 @@ const DynamicCatalog = () => {
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? 'glass-button' : 'glass-card border-glass-border/30'}
+                  className={viewMode === 'list' ? 'glass-button-interactive' : 'liquid-card border-glass-border/30 liquid-ripple'}
                 >
                   <List className="w-4 h-4" />
                 </Button>
@@ -218,10 +228,10 @@ const DynamicCatalog = () => {
               <button
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
-                className={`glass-card rounded-glass px-4 py-2 transition-glass ${
+                className={`liquid-card p-3 transition-all duration-500 glass-shine-effect ${
                   selectedCategory === cat
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-glass-border/30 text-foreground/80 hover:border-primary/50'
+                    ? 'border-primary bg-primary/10 text-primary liquid-animation'
+                    : 'border-glass-border/30 text-foreground/80 hover:border-primary/50 liquid-ripple'
                 }`}
               >
                 <span className="font-medium">{getCategoryDisplayName(cat)}</span>
@@ -265,7 +275,7 @@ const DynamicCatalog = () => {
             ))}
           </div>
         ) : !loading && (
-          <div className="glass-card rounded-glass p-12 text-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="liquid-card p-12 text-center animate-fade-in-up liquid-animation" style={{ animationDelay: '0.3s' }}>
             <div className="w-16 h-16 mx-auto mb-4 bg-glass/20 rounded-full flex items-center justify-center">
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -280,13 +290,11 @@ const DynamicCatalog = () => {
                 setSearchTerm('');
                 setSelectedCategory('all');
                 setFilters({
-                  priceRange: [0, 5000],
-                  thcRange: [0, 35],
                   sortBy: 'name',
                   category: 'all'
                 });
               }}
-              className="glass-button mt-4"
+              className="glass-button-interactive mt-4 liquid-ripple"
             >
               Limpiar filtros
             </Button>

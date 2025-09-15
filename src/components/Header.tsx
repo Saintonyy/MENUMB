@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { fetchCategorias } from '@/services/catalogRepo';
 import CartSummary from '@/components/CartSummary';
 import logo from '@/assets/logo.png';
@@ -11,6 +11,7 @@ const Header = () => {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Fetch categories from Supabase
   useEffect(() => {
@@ -40,8 +41,24 @@ const Header = () => {
             cat === 'flores' ? 'Flores' :
             cat === 'parafernalia' ? 'Parafernalia' :
             cat.charAt(0).toUpperCase() + cat.slice(1),
-      href: `/catalogo?category=${cat}`
+      href: `/catalogo?category=${cat}`,
+      category: cat
     }));
+  };
+
+  const handleCategoryNavigation = (category: string, href: string) => {
+    // Cerrar el dropdown
+    setIsCatalogOpen(false);
+    setIsMenuOpen(false);
+    
+    // Navegar siempre, incluso si ya estamos en la página de catálogo
+    navigate(href, { replace: true });
+    
+    // Scroll automático al top (especificación de memoria)
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   return (
@@ -82,7 +99,7 @@ const Header = () => {
               </button>
 
               {isCatalogOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 glass-card-animated mobile-dropdown border border-glass-border/30 rounded-2xl shadow-glass animate-scale-in z-50">
+                <div className="absolute top-full left-0 mt-2 w-48 glass-card-animated mobile-dropdown industrial-dropdown border border-glass-border/30 rounded-2xl shadow-glass z-50">
                   <div className="p-4">
                     {/* Inicio */}
                     <Link
@@ -98,14 +115,13 @@ const Header = () => {
                     
                     {/* Categories */}
                     {getCatalogItems().map((item) => (
-                      <Link
+                      <button
                         key={item.name}
-                        to={item.href}
-                        onClick={() => setIsCatalogOpen(false)}
-                        className="block px-3 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-glass/20 rounded-xl transition-bounce"
+                        onClick={() => handleCategoryNavigation(item.category, item.href)}
+                        className="block w-full text-left px-3 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-glass/20 rounded-xl transition-bounce"
                       >
                         {item.name}
-                      </Link>
+                      </button>
                     ))}
                     
                     {/* Divider */}
@@ -159,7 +175,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 glass-card-animated mobile-dropdown border border-glass-border/30 rounded-2xl p-6 animate-scale-in">
+          <div className="md:hidden mt-4 glass-card-animated mobile-dropdown industrial-dropdown border border-glass-border/30 rounded-2xl p-6">
             <nav className="flex flex-col space-y-4">
               {/* Inicio */}
               <Link 
@@ -176,14 +192,13 @@ const Header = () => {
               {/* Categories */}
               <div className="space-y-2">
                 {getCatalogItems().map((item) => (
-                  <Link
+                  <button
                     key={item.name}
-                    to={item.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block text-sm text-foreground/80 hover:text-primary transition-bounce px-3 py-2 rounded-xl hover:bg-glass/20"
+                    onClick={() => handleCategoryNavigation(item.category, item.href)}
+                    className="block w-full text-left text-sm text-foreground/80 hover:text-primary transition-bounce px-3 py-2 rounded-xl hover:bg-glass/20"
                   >
                     {item.name}
-                  </Link>
+                  </button>
                 ))}
               </div>
 
